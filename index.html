@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manejador de Usuarios</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Manejador de Usuarios</h1>
+    <hr>
+    <!-- Agregar Usuario Form -->
+    <h2>Agregar Usuario</h2>
+    <form id="addUserForm">
+      <div class="form-group">
+        <label for="userId">ID:</label>
+        <input type="text" class="form-control" id="userId" name="id" required>
+      </div>
+      <div class="form-group">
+        <label for="userNumber">Número:</label>
+        <input type="text" class="form-control" id="userNumber" name="number" required>
+      </div>
+      <div class="form-group">
+        <label for="userTalla">Talla:</label>
+        <input type="text" class="form-control" id="userTalla" name="talla" required>
+      </div>
+      <div class="form-group">
+        <label for="userTelefono">Teléfono:</label>
+        <input type="text" class="form-control" id="userTelefono" name="telefono" required>
+      </div>
+      <div class="form-group">
+        <label for="userName">Nombre:</label>
+        <input type="text" class="form-control" id="userName" name="nombre" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Agregar Usuario</button>
+    </form>
+
+    <hr>
+    <!-- Editar Usuario Form -->
+    <h2>Editar Usuario</h2>
+    <form id="editUserForm">
+      <div class="form-group">
+        <label for="editUserId">ID:</label>
+        <input type="text" class="form-control" id="editUserId" name="id" required readonly>
+      </div>
+      <div class="form-group">
+        <label for="editUserNumber">Número:</label>
+        <input type="text" class="form-control" id="editUserNumber" name="number" required>
+      </div>
+      <div class="form-group">
+        <label for="editUserTalla">Talla:</label>
+        <input type="text" class="form-control" id="editUserTalla" name="talla" required>
+      </div>
+      <div class="form-group">
+        <label for="editUserTelefono">Teléfono:</label>
+        <input type="text" class="form-control" id="editUserTelefono" name="telefono" required>
+      </div>
+      <div class="form-group">
+        <label for="editUserName">Nombre:</label>
+        <input type="text" class="form-control" id="editUserName" name="nombre" required>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="updateUser()">Guardar</button>
+    </form>
+
+    <hr>
+    <!-- Lista de Usuarios -->
+    <h2>Lista de Usuarios</h2>
+    <ul id="userList" class="list-group">
+      <!-- Los elementos de usuario se aTelefonorán dinámicamente aquí -->
+    </ul>
+  </div>
+
+  <!-- Bootstrap JS y Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    // Función para obtener y mostrar usuarios
+    function fetchUsers() {
+      axios.get('/users')
+        .then(function (response) {
+          const users = response.data;
+          const userList = document.getElementById('userList');
+          userList.innerHTML = '';
+          users.forEach(function(user) {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerHTML = `
+              <strong>ID:</strong> ${user.id} - 
+              <strong>Número:</strong> ${user.number} - 
+              <strong>Talla:</strong> ${user.talla} -
+              <strong>Teléfono:</strong> ${user.telefono} -
+              <strong>Nombre:</strong> ${user.nombre}
+              <button class="btn btn-warning btn-sm mx-2" onclick="editUser(${user.id})">Editar</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Eliminar</button>
+            `;
+            userList.appendChild(li);
+          });
+        })
+        .catch(function (error) {
+          console.error('Error al obtener usuarios:', error);
+        });
+    }
+
+    // Función para aTelefonor un nuevo usuario
+    document.getElementById('addUserForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const userData = {};
+      formData.forEach(function(value, key) {
+        userData[key] = value;
+      });
+      axios.post('/users', userData)
+        .then(function (response) {
+          console.log('Usuario aTelefonorado exitosamente:', response.data);
+          fetchUsers();
+        })
+        .catch(function (error) {
+          console.error('Error al aTelefonorar usuario:', error);
+        });
+    });
+
+    // Función para eliminar un usuario
+    function deleteUser(userId) {
+      axios.delete(`/users/${userId}`)
+        .then(function (response) {
+          console.log('Usuario eliminado exitosamente:', response.data);
+          fetchUsers();
+        })
+        .catch(function (error) {
+          console.error('Error al eliminar usuario:', error);
+        });
+    }
+
+    // Función para llenar el formulario de edición con los datos del usuario
+    function editUser(userId) {
+      // Obtener los datos del usuario por ID y llenar los campos del formulario de edición
+      axios.get(`/users/${userId}`)
+        .then(function(response) {
+          const user = response.data[0]; // Suponiendo que la respuesta es un array con un único objeto de usuario
+          document.getElementById('editUserId').value = user.id;
+          document.getElementById('editUserNumber').value = user.number;
+          document.getElementById('editUserTalla').value = user.talla;
+          document.getElementById('editUserTelefono').value = user.telefono;
+          document.getElementById('editUserName').value = user.nombre;
+        })
+        .catch(function(error) {
+          console.error('Error al obtener datos del usuario:', error);
+        });
+    }
+
+    // Función para actualizar los datos del usuario
+    function updateUser() {
+      const userId = document.getElementById('editUserId').value;
+      const userData = {
+        number: document.getElementById('editUserNumber').value,
+        talla: document.getElementById('editUserTalla').value,
+        telefono: document.getElementById('editUserTelefono').value,
+        nombre: document.getElementById('editUserName').value
+      };
+
+      axios.put(`/users/${userId}`, userData)
+        .then(function(response) {
+          console.log('Usuario actualizado exitosamente:', response.data);
+          fetchUsers(); // Actualizar la lista de usuarios después de la actualización
+        })
+        .catch(function(error) {
+          console.error('Error al actualizar usuario:', error);
+        });
+    }
+
+    // Obtener inicialmente los usuarios
+    fetchUsers();
+  </script>
+</body>
+</html>
